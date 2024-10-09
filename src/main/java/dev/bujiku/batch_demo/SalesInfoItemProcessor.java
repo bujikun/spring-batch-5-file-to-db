@@ -1,6 +1,7 @@
 package dev.bujiku.batch_demo;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.Locale;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SalesInfoItemProcessor implements ItemProcessor<SalesInfoDTO, SalesInfo> {
     private final SalesInfoMapper salesInfoMapper;
 
