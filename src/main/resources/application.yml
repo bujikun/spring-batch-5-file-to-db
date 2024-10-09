@@ -1,22 +1,8 @@
 spring:
   application:
     name: batch-demo
-  jpa:
-    open-in-view: false
-    properties:
-      hibernate:
-        hbm2ddl:
-          auto: none
-        format_sql: true
-        generate_statistics: true
-        session:
-          events:
-            log:
-              LOG_QUERIES_SLOWER_THAN_MS: 1
-        jdbc:
-          batch_size: 100
   datasource:
-    #    driver-class-name: org.mariadb.jdbc.Driver
+    driver-class-name: org.mariadb.jdbc.Driver
     hikari:
       connection-timeout: 30000
       max-lifetime: 1800000
@@ -24,6 +10,11 @@ spring:
       idle-timeout: 600000
       connection-test-query: SELECT 1 # Keep the connection alive if idle for a long time (needed in production)
       auto-commit: false
+    url: "jdbc:mariadb://127.0.0.1:43306/batch_db?createDatabaseIfNotExist=true&useSSL=false&characterEncoding=UTF-8
+    &allowPublicKeyRetrieval=true&useUnicode=yes&characterEncoding=UTF-8
+    &useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC+3"
+    username: user
+    password: secret
   batch:
     jdbc:
       initialize-schema: always
@@ -32,5 +23,8 @@ spring:
   threads:
     virtual:
       enabled: true
+  sql:
+    init:
+      mode: always
 server:
   port: 9090
