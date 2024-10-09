@@ -7,6 +7,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
@@ -39,7 +40,7 @@ public class SalesInfoBatchConfig {
                 .linesToSkip(1)
                 .delimited()
                 .delimiter(",")
-                .strict(false)
+                .strict(true)
                 .names("product", "seller", "sellerId", "price", "city", "category")
                 .build();
     }
@@ -53,30 +54,43 @@ public class SalesInfoBatchConfig {
 
     public TaskExecutor taskExecutor() {
         var executor = new SimpleAsyncTaskExecutor();
-        executor.setConcurrencyLimit(100);
+        executor.setConcurrencyLimit(500);
         executor.setVirtualThreads(true);
         return executor;
     }
 
+
     @Bean
     public Step fromFileToDB() {
         return new StepBuilder("readFromFileToDB", jobRepository)
-                .<SalesInfoDTO, SalesInfo>chunk(200, platformTransactionManager)
+                .<SalesInfoDTO, SalesInfo>chunk(1000, platformTransactionManager)
+                // .<SalesInfoDTO, Future<SalesInfo>>chunk(1000, platformTransactionManager)
                 .taskExecutor(taskExecutor())
                 .reader(itemReader())
                 .processor(salesInfoItemProcessor)
                 .writer(itemWriter())
                 .faultTolerant()
+                //.skipPolicy(new AlwaysSkipItemSkipPolicy())
+                .skipPolicy(new SalesInfoSkipPolicy())
+                .listener(new SalesInfoItemReaderListener())
+                .listener(new SalesInfoStepExecutionListener(salesInfoRepository))
                 .build();
     }
 
     @Bean
-    public Job importSalesInfo(Step step) {
+    public Job importSalesInfoJob(Step step) {
         return new JobBuilder("importSalesInfo", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(fromFileToDB())
                 .build();
     }
 
+    @Bean
+    public Job anotherJob(Step step) {
+        return new JobBuilder("anotherJob", jobRepository)
+                .incrementer(new RunIdIncrementer())
+                .start(fromFileToDB())
+                .build();
+    }
 
 }
