@@ -12,6 +12,7 @@ import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Instant;
 
@@ -24,7 +25,21 @@ import java.time.Instant;
 @Slf4j
 public class SalesInfoJobRunner {
     private final JobLauncher jobLauncher;
-    private final Job job;
+    private final Job importSalesInfoJob;
+
+//    @Scheduled(cron = "0/30 * * ? * *")
+//    void runJob() {
+//        log.info("ABOUT TO START A JOB");
+//        var jobParams = new JobParametersBuilder()
+//                .addLong("startedAt", Instant.now().toEpochMilli())
+//                .toJobParameters();
+//        try {
+//            jobLauncher.run(importSalesInfoJob, jobParams);
+//        } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
+//                 JobParametersInvalidException e) {
+//            log.error("", e);
+//        }
+//    }
 
     @EventListener(classes = ApplicationReadyEvent.class)
     void run() {
@@ -33,16 +48,10 @@ public class SalesInfoJobRunner {
                 .addLong("startedAt", Instant.now().toEpochMilli())
                 .toJobParameters();
         try {
-            jobLauncher.run(job, jobParams);
+            jobLauncher.run(importSalesInfoJob, jobParams);
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
                  JobParametersInvalidException e) {
             log.error("", e);
         }
     }
-
-
-//    @Bean
-//    public CommandLineRunner commandLineRunner() {
-//
-//    }
 }
